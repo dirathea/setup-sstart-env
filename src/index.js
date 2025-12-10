@@ -80,7 +80,7 @@ async function run() {
     // Extract the tar.gz archive
     core.info('Extracting archive...');
     try {
-      await exec.exec('tar', ['-xzf', archivePath, '-C', process.cwd()]);
+      await exec.exec('tar', ['-xzf', archivePath, '--strip-components=1', '-C', process.cwd()]);
       // Clean up the archive
       fs.unlinkSync(archivePath);
     } catch (error) {
