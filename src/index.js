@@ -7,28 +7,27 @@ const http = require('http');
 
 /**
  * Parse environment variable output from sstart env command
- * Expected format: KEY=VALUE (one per line)
+ * Expected format: JSON object with key-value pairs
  */
 function parseEnvOutput(output) {
-  const envVars = {};
-  const lines = output.split('\n');
-  
-  for (const line of lines) {
-    const trimmed = line.trim();
-    if (!trimmed || trimmed.startsWith('#')) {
-      continue; // Skip empty lines and comments
+  try {
+    const trimmed = output.trim();
+    if (!trimmed) {
+      return {};
     }
     
-    // Parse KEY=VALUE format
-    const match = trimmed.match(/^([A-Za-z_][A-Za-z0-9_]*)=(.*)$/);
-    if (match) {
-      const key = match[1];
-      const value = match[2];
-      envVars[key] = value;
+    // Parse JSON format
+    const envVars = JSON.parse(trimmed);
+    
+    // Ensure it's an object
+    if (typeof envVars !== 'object' || envVars === null || Array.isArray(envVars)) {
+      throw new Error('Expected JSON object');
     }
+    
+    return envVars;
+  } catch (error) {
+    throw new Error(`Failed to parse JSON output from sstart env: ${error.message}`);
   }
-  
-  return envVars;
 }
 
 async function run() {
@@ -105,8 +104,9 @@ async function run() {
     let output = '';
     let errorOutput = '';
     
-    const exitCode = await exec.exec(binaryPath, ['env'], {
+    const exitCode = await exec.exec(binaryPath, ['env', '--format', 'json'], {
       cwd: process.cwd(),
+      silent: true, // Prevent output from being logged
       listeners: {
         stdout: (data) => {
           output += data.toString();
