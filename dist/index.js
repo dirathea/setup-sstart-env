@@ -27394,6 +27394,7 @@ function requireSrc () {
 	    // Set GitHub environment variables one by one
 	    let count = 0;
 	    for (const [key, value] of Object.entries(envVars)) {
+	      core.setSecret(value);
 	      core.exportVariable(key, value);
 	      count++;
 	    }
