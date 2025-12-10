@@ -27307,7 +27307,7 @@ function requireSrc () {
 	    // Normalize architecture
 	    let architecture = arch;
 	    if (architecture === 'x64') {
-	      architecture = 'amd64';
+	      architecture = 'x86_64';
 	    } else if (architecture === 'arm64') {
 	      architecture = 'arm64';
 	    }
