@@ -19,7 +19,7 @@ jobs:
       - uses: actions/checkout@v3
       
       - name: Fetch external secrets with sstart
-        uses: dirathea/sstart-github-action@v1
+        uses: dirathea/setup-sstart-env@v1
         with:
           config: |
             providers:
@@ -62,7 +62,7 @@ Different secret providers require different environment variables for authentic
 
 ```yaml
 - name: Fetch external secrets with sstart
-  uses: dirathea/sstart-github-action@v1
+  uses: dirathea/setup-sstart-env@v1
   env:
     AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
     AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
@@ -83,7 +83,7 @@ Different secret providers require different environment variables for authentic
 
 ```yaml
 - name: Fetch external secrets with sstart
-  uses: dirathea/sstart-github-action@v1
+  uses: dirathea/setup-sstart-env@v1
   env:
     OP_SERVICE_ACCOUNT_TOKEN: ${{ secrets.OP_SERVICE_ACCOUNT_TOKEN }}
   with:
@@ -100,7 +100,7 @@ sstart needs credentials to authenticate with your secret provider. Pass these c
 
 ```yaml
 - name: Fetch external secrets with sstart
-  uses: dirathea/sstart-github-action@v1
+  uses: dirathea/setup-sstart-env@v1
   env:
     # AWS credentials for AWS Secrets Manager
     AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
@@ -124,7 +124,7 @@ sstart needs credentials to authenticate with your secret provider. Pass these c
 **Example with 1Password:**
 ```yaml
 - name: Fetch external secrets with sstart
-  uses: dirathea/sstart-github-action@v1
+  uses: dirathea/setup-sstart-env@v1
   env:
     # 1Password service account token
     OP_SERVICE_ACCOUNT_TOKEN: ${{ secrets.OP_SERVICE_ACCOUNT_TOKEN }}
