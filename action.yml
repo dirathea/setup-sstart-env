@@ -1,0 +1,17 @@
+name: 'Setup sstart'
+description: 'Downloads the sstart binary, runs sstart env, and pushes environment variables to GitHub'
+branding:
+  icon: 'download'
+  color: 'blue'
+inputs:
+  config:
+    description: 'YAML configuration for sstart (resembling .sstart.yml)'
+    required: true
+  version:
+    description: 'Version of sstart to download (default: 0.0.2)'
+    required: false
+    default: '0.0.2'
+runs:
+  using: 'node20'
+  main: 'dist/index.js'
+
