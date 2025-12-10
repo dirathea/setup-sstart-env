@@ -27302,7 +27302,7 @@ function requireSrc () {
 	      return;
 	    }
 	    
-	    let os = platform === 'darwin' ? 'darwin' : 'linux';
+	    let os = platform === 'darwin' ? 'Darwin' : 'Linux';
 	    
 	    // Normalize architecture
 	    let architecture = arch;
@@ -27312,24 +27312,36 @@ function requireSrc () {
 	      architecture = 'arm64';
 	    }
 	    
-	    const platformString = `${os}-${architecture}`;
+	    const platformString = `${os}_${architecture}`;
 	    core.info(`Detected platform: ${platformString}`);
 
 	    // Build download URL from GitHub releases
 	    // Normalize version (remove 'v' prefix if present, add it back for URL)
 	    const normalizedVersion = version.startsWith('v') ? version : `v${version}`;
-	    const downloadUrl = `https://github.com/dirathea/sstart/releases/download/${normalizedVersion}/sstart-${platformString}`;
+	    const downloadUrl = `https://github.com/dirathea/sstart/releases/download/${normalizedVersion}/sstart_${platformString}.tar.gz`;
 
-	    // Download binary
+	    // Download binary archive
 	    const binaryName = 'sstart';
+	    const archivePath = path.join(process.cwd(), `sstart_${platformString}.tar.gz`);
 	    const binaryPath = path.join(process.cwd(), binaryName);
 	    
 	    core.info(`Downloading sstart ${normalizedVersion} from: ${downloadUrl}`);
 	    
 	    try {
-	      await downloadFile(downloadUrl, binaryPath);
+	      await downloadFile(downloadUrl, archivePath);
 	    } catch (error) {
 	      core.setFailed(`Could not download sstart binary: ${error.message}`);
+	      return;
+	    }
+
+	    // Extract the tar.gz archive
+	    core.info('Extracting archive...');
+	    try {
+	      await exec.exec('tar', ['-xzf', archivePath, '-C', process.cwd()]);
+	      // Clean up the archive
+	      fs.unlinkSync(archivePath);
+	    } catch (error) {
+	      core.setFailed(`Could not extract sstart binary: ${error.message}`);
 	      return;
 	    }
 
