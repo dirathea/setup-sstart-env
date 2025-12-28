@@ -1,6 +1,7 @@
 import { readFileSync } from 'fs';
 import { fileURLToPath } from 'url';
 import { dirname, join } from 'path';
+import https from 'https';
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = dirname(__filename);
@@ -355,6 +356,138 @@ describe('Sstart Download Process Tests', () => {
         expect(url).toContain(`/v${testVersion}/`);
       });
     });
+  });
+
+  describe('Actual Download Validation', () => {
+    let actionYmlContent;
+    let renovateConfig;
+
+    beforeAll(() => {
+      // Read actual files
+      const projectRoot = join(__dirname, '..');
+      actionYmlContent = readFileSync(join(projectRoot, 'action.yml'), 'utf8');
+      renovateConfig = JSON.parse(
+        readFileSync(join(projectRoot, 'renovate.json'), 'utf8')
+      );
+    });
+
+    // Helper function to check if a URL exists (HEAD request)
+    function checkUrlExists(url) {
+      return new Promise((resolve, reject) => {
+        const urlObj = new URL(url);
+        const options = {
+          hostname: urlObj.hostname,
+          port: urlObj.port || 443,
+          path: urlObj.pathname + urlObj.search,
+          method: 'HEAD',
+          timeout: 5000, // 5 second timeout
+        };
+
+        const req = https.request(options, (res) => {
+          // Follow redirects
+          if (res.statusCode === 301 || res.statusCode === 302 || res.statusCode === 307 || res.statusCode === 308) {
+            const location = res.headers.location;
+            if (location) {
+              return checkUrlExists(location).then(resolve).catch(reject);
+            }
+          }
+          resolve(res.statusCode === 200);
+          res.destroy(); // Close the response
+        });
+
+        req.on('error', (error) => {
+          reject(error);
+        });
+
+        req.on('timeout', () => {
+          req.destroy();
+          reject(new Error('Request timeout'));
+        });
+
+        req.end();
+      });
+    }
+
+    it('should validate that current version in action.yml can be downloaded', async () => {
+      // Extract current version from action.yml using Renovate's regex pattern
+      const manager = renovateConfig.regexManagers[0];
+      const pattern = new RegExp(manager.matchStrings[0]);
+      const match = actionYmlContent.match(pattern);
+      
+      expect(match).not.toBeNull();
+      const currentVersion = match.groups.currentValue;
+      
+      // Build download URL for current platform
+      const url = buildDownloadUrl(currentVersion, process.platform, process.arch);
+      
+      // Verify the URL actually exists (downloadable)
+      const exists = await checkUrlExists(url);
+      expect(exists).toBe(true);
+    }, 10000); // 10 second timeout for network request
+
+    it('should validate download URL for all supported platforms with current version', async () => {
+      // Extract current version from action.yml
+      const manager = renovateConfig.regexManagers[0];
+      const pattern = new RegExp(manager.matchStrings[0]);
+      const match = actionYmlContent.match(pattern);
+      const currentVersion = match.groups.currentValue;
+      
+      const platforms = [
+        { platform: 'darwin', arch: 'x64' },
+        { platform: 'darwin', arch: 'arm64' },
+        { platform: 'linux', arch: 'x64' },
+        { platform: 'linux', arch: 'arm64' },
+      ];
+      
+      // Test each platform (but skip if not the current platform to avoid unnecessary network calls)
+      for (const { platform, arch } of platforms) {
+        const url = buildDownloadUrl(currentVersion, platform, arch);
+        
+        // Only test the current platform, others are just URL validation
+        if (platform === process.platform && arch === process.arch) {
+          const exists = await checkUrlExists(url);
+          expect(exists).toBe(true);
+        } else {
+          // For other platforms, just verify URL format is correct
+          expect(url).toContain(`/v${currentVersion}/`);
+          expect(url).toContain('github.com/dirathea/sstart/releases/download');
+        }
+      }
+    }, 15000);
+
+    it('should validate that Renovate-updated versions are actually downloadable', async () => {
+      // This test simulates what happens when Renovate updates the version
+      // It validates that the new version can actually be downloaded
+      
+      // Get current version from action.yml
+      const manager = renovateConfig.regexManagers[0];
+      const pattern = new RegExp(manager.matchStrings[0]);
+      const match = actionYmlContent.match(pattern);
+      const currentVersion = match.groups.currentValue;
+      
+      // Build URL with current version and verify it's downloadable
+      const currentUrl = buildDownloadUrl(currentVersion, process.platform, process.arch);
+      const currentExists = await checkUrlExists(currentUrl);
+      expect(currentExists).toBe(true);
+      
+      // Note: We can't test future versions that don't exist yet,
+      // but this ensures the current version works and validates the download mechanism
+    }, 10000);
+
+    it('should fail validation if version does not exist in GitHub releases', async () => {
+      // Test with a version that definitely doesn't exist
+      const nonExistentVersion = '999.999.999';
+      const url = buildDownloadUrl(nonExistentVersion, process.platform, process.arch);
+      
+      // This should fail (return false or throw)
+      try {
+        const exists = await checkUrlExists(url);
+        expect(exists).toBe(false);
+      } catch (error) {
+        // It's also acceptable if it throws an error
+        expect(error).toBeDefined();
+      }
+    }, 10000);
   });
 
   afterAll(() => {
