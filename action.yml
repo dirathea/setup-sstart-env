@@ -8,9 +8,9 @@ inputs:
     description: 'YAML configuration for sstart (resembling .sstart.yml)'
     required: true
   version:
-    description: 'Version of sstart to download (default: 0.0.2)'
+    description: 'Version of sstart to download (default: 0.0.8)'
     required: false
-    default: '0.0.2'
+    default: '0.0.8'
 runs:
   using: 'node20'
   main: 'dist/index.js'
