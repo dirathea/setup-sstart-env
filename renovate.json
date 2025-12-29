@@ -15,18 +15,6 @@
       "depNameTemplate": "dirathea/sstart",
       "extractVersionTemplate": "^v?(?<version>.*)$",
       "versioningTemplate": "semver"
-    },
-    {
-      "fileMatch": [
-        "^action\\.yml$"
-      ],
-      "matchStrings": [
-        "description:\\s*['\"]Version of sstart to download \\(default:\\s*(?<currentValue>.*?)\\)['\"]"
-      ],
-      "datasourceTemplate": "github-releases",
-      "depNameTemplate": "dirathea/sstart",
-      "extractVersionTemplate": "^v?(?<version>.*)$",
-      "versioningTemplate": "semver"
     }
   ]
 }
