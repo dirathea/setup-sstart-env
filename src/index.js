@@ -49,22 +49,23 @@ async function run() {
     // Normalize architecture
     let architecture = arch;
     if (architecture === 'x64') {
-      architecture = 'x86_64';
+      architecture = 'amd64';
     } else if (architecture === 'arm64') {
       architecture = 'arm64';
     }
     
-    const platformString = `${os}_${architecture}`;
-    core.info(`Detected platform: ${platformString}`);
-
     // Build download URL from GitHub releases
-    // Normalize version (remove 'v' prefix if present, add it back for URL)
+    // Normalize version (remove 'v' prefix if present, add it back for TAG)
     const normalizedVersion = version.startsWith('v') ? version : `v${version}`;
-    const downloadUrl = `https://github.com/dirathea/sstart/releases/download/${normalizedVersion}/sstart_${platformString}.tar.gz`;
+    const versionWithoutV = version.startsWith('v') ? version.slice(1) : version;
+    const osLower = os.toLowerCase();
+    const archLower = architecture.toLowerCase();
+    core.info(`Detected platform: ${osLower}-${archLower}`);
+    const downloadUrl = `https://github.com/dirathea/sstart/releases/download/${normalizedVersion}/sstart-${versionWithoutV}-${osLower}-${archLower}.tar.gz`;
 
     // Download binary archive
     const binaryName = 'sstart';
-    const archivePath = path.join(process.cwd(), `sstart_${platformString}.tar.gz`);
+    const archivePath = path.join(process.cwd(), `sstart-${versionWithoutV}-${osLower}-${archLower}.tar.gz`);
     const binaryPath = path.join(process.cwd(), binaryName);
     
     core.info(`Downloading sstart ${normalizedVersion} from: ${downloadUrl}`);
