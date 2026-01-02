@@ -7,7 +7,8 @@
   "scripts": {
     "build": "rollup --config rollup.config.js",
     "test": "node --experimental-vm-modules node_modules/jest/bin/jest.js",
-    "test:watch": "node --experimental-vm-modules node_modules/jest/bin/jest.js --watch"
+    "test:watch": "node --experimental-vm-modules node_modules/jest/bin/jest.js --watch",
+    "prepare": "husky"
   },
   "repository": {
     "type": "git",
@@ -30,6 +31,7 @@
   "devDependencies": {
     "@rollup/plugin-commonjs": "^29.0.0",
     "@rollup/plugin-node-resolve": "^16.0.3",
+    "husky": "^9.1.7",
     "jest": "^30.0.0",
     "rollup": "^4.53.3"
   }
